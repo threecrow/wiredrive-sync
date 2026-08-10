@@ -1,0 +1,58 @@
+{
+  "watch_folders": [
+    {
+      "id": "primary",
+      "name": "Wiredrive Watch",
+      "path": "~/Wiredrive Watch",
+      "destination_label": "Wiredrive Project Folder",
+      "project_id": "",
+      "folder_id": "",
+      "enabled": true,
+      "direction": "two_way",
+      "include_subfolders": true,
+      "create_missing_folders": true
+    }
+  ],
+  "stability_seconds": 5,
+  "uploader_mode": "wiredrive",
+  "allowed_extensions": [
+    ".mov",
+    ".mp4",
+    ".mxf",
+    ".m4v",
+    ".jpg",
+    ".jpeg",
+    ".png",
+    ".tif",
+    ".tiff",
+    ".wav",
+    ".mp3",
+    ".pdf"
+  ],
+  "move_completed_to": "",
+  "delete_after_upload": false,
+  "wiredrive": {
+    "site_url": "https://wsl.wiredrive.com",
+    "user_id": "",
+    "client_code": "wsl",
+    "api_version": "2006-03-01",
+    "region": "us-west-2",
+    "version": "latest",
+    "signature_version": "v4",
+    "refresh_interval": 3300000,
+    "bucket_name": "wiredrive-upload",
+    "asset_path_prefix": "/st7/wiredrive/files/wiredrive.com/",
+    "part_size": 5242880,
+    "queue_size": 4,
+    "upload_max_size": 5368709120,
+    "handler": "S3Handler",
+    "expiration": "",
+    "project_id": "",
+    "folder_id": "",
+    "is_library_available": true,
+    "is_project_available": true
+  },
+  "remote_check_seconds": 15,
+  "mirror_deletions": false,
+  "version": "1.7"
+}

@@ -1,0 +1,56 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+
+# Wiredrive Sync runtime data
+config.json
+watchfolder.db
+watchfolder.db-*
+*.sqlite
+*.sqlite3
+Logs/
+*.log
+migration.txt
+
+# Credentials / captures
+*.har
+*.HAR
+*.pem
+*.key
+.env
+.env.*
+credentials.json
+secrets.json
+
+# macOS
+.DS_Store
+._*
+.AppleDouble
+.LSOverride
+Icon?
+.Trashes
+.Spotlight-V100
+.fseventsd
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# Build output
+dist/
+build/
+*.app/
+*.dmg
+*.pkg
+*.exe
+*.msi
+*.zip
+*.tar.gz
+
+# Editor / IDE
+.vscode/
+.idea/

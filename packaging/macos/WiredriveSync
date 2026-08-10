@@ -1,0 +1,151 @@
+#!/bin/bash
+set -u
+
+APP_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+RESOURCES="$APP_ROOT/Resources/WiredriveSync"
+SUPPORT="$HOME/Library/Application Support/Wiredrive Sync"
+VENV="$SUPPORT/native-runtime"
+LOGDIR="$SUPPORT/Logs"
+LOGFILE="$LOGDIR/WiredriveSync.log"
+
+mkdir -p "$SUPPORT" "$LOGDIR"
+
+echo "==================================================" >>"$LOGFILE"
+echo "Wiredrive Sync 1.7 launch: $(date)" >>"$LOGFILE"
+echo "macOS: $(/usr/bin/sw_vers -productVersion 2>/dev/null || echo unknown)" >>"$LOGFILE"
+echo "Machine: $(/usr/bin/uname -m 2>/dev/null || echo unknown)" >>"$LOGFILE"
+
+python_ok() {
+  "$1" - <<'PY' >/dev/null 2>&1
+import sys
+raise SystemExit(0 if sys.version_info >= (3,9) else 1)
+PY
+}
+
+python_arch() {
+  "$1" - <<'PY' 2>/dev/null
+import platform
+print(platform.machine())
+PY
+}
+
+python_version() {
+  "$1" - <<'PY' 2>/dev/null
+import sys
+print(".".join(map(str, sys.version_info[:3])))
+PY
+}
+
+find_python() {
+  local host_arch
+  host_arch="$(/usr/bin/uname -m 2>/dev/null || echo unknown)"
+
+  local candidates=(
+    "/opt/homebrew/bin/python3"
+    "/Library/Frameworks/Python.framework/Versions/Current/bin/python3"
+    "/usr/bin/python3"
+    "/usr/local/bin/python3"
+  )
+
+  local fallback=""
+  local p arch
+  for p in "${candidates[@]}"; do
+    [ -x "$p" ] || continue
+    python_ok "$p" || continue
+    arch="$(python_arch "$p")"
+
+    # Prefer a native arm64 interpreter on Apple Silicon.
+    if [ "$host_arch" = "arm64" ] && [ "$arch" = "arm64" ]; then
+      echo "$p"
+      return 0
+    fi
+
+    [ -n "$fallback" ] || fallback="$p"
+  done
+
+  p="$(command -v python3 2>/dev/null || true)"
+  if [ -n "$p" ] && [ -x "$p" ] && python_ok "$p"; then
+    arch="$(python_arch "$p")"
+    if [ "$host_arch" != "arm64" ] || [ "$arch" = "arm64" ]; then
+      echo "$p"
+      return 0
+    fi
+    [ -n "$fallback" ] || fallback="$p"
+  fi
+
+  if [ -n "$fallback" ]; then
+    echo "$fallback"
+    return 0
+  fi
+  return 1
+}
+
+PYTHON="$(find_python || true)"
+
+if [ -z "$PYTHON" ]; then
+  echo "ERROR: No Python 3.9+ interpreter found." >>"$LOGFILE"
+  /usr/bin/osascript -e 'display dialog "Wiredrive Sync requires Python 3.9 or newer. Install a current Python 3 from python.org or Homebrew, then reopen Wiredrive Sync." with title "Wiredrive Sync" buttons {"OK"} default button "OK" with icon stop' >/dev/null 2>&1 || true
+  exit 1
+fi
+
+PYVER="$(python_version "$PYTHON")"
+PYARCH="$(python_arch "$PYTHON")"
+echo "Python: $PYTHON" >>"$LOGFILE"
+echo "Python version: $PYVER" >>"$LOGFILE"
+echo "Python architecture: $PYARCH" >>"$LOGFILE"
+
+# Rebuild the venv if it exists but no longer matches the selected interpreter architecture/version.
+if [ -x "$VENV/bin/python" ]; then
+  VENV_VER="$(python_version "$VENV/bin/python" || true)"
+  VENV_ARCH="$(python_arch "$VENV/bin/python" || true)"
+  if [ "$VENV_ARCH" != "$PYARCH" ]; then
+    echo "Rebuilding runtime because architecture changed: $VENV_ARCH -> $PYARCH" >>"$LOGFILE"
+    rm -rf "$VENV"
+  fi
+fi
+
+if [ ! -x "$VENV/bin/python" ]; then
+  echo "Creating Python runtime..." >>"$LOGFILE"
+  "$PYTHON" -m venv "$VENV" >>"$LOGFILE" 2>&1 || {
+    /usr/bin/osascript -e 'display dialog "Wiredrive Sync could not create its Python runtime. See ~/Library/Application Support/Wiredrive Sync/Logs/WiredriveSync.log" with title "Wiredrive Sync" buttons {"OK"} default button "OK" with icon stop' >/dev/null 2>&1 || true
+    exit 1
+  }
+fi
+
+REQ="$RESOURCES/requirements-macos.txt"
+REQ_HASH="$(/usr/bin/shasum -a 256 "$REQ" | /usr/bin/awk '{print $1}')"
+MARKER="$VENV/.wiredrive-req-$REQ_HASH"
+
+if [ ! -f "$MARKER" ]; then
+  echo "Installing/updating runtime dependencies..." >>"$LOGFILE"
+  "$VENV/bin/python" -m pip install --quiet --upgrade pip >>"$LOGFILE" 2>&1
+
+  if ! "$VENV/bin/python" -m pip install --quiet -r "$REQ" >>"$LOGFILE" 2>&1; then
+    echo "ERROR: Dependency installation failed." >>"$LOGFILE"
+    /usr/bin/osascript -e 'display dialog "Wiredrive Sync could not install its macOS runtime dependencies. See ~/Library/Application Support/Wiredrive Sync/Logs/WiredriveSync.log" with title "Wiredrive Sync" buttons {"OK"} default button "OK" with icon stop' >/dev/null 2>&1 || true
+    exit 1
+  fi
+
+  /usr/bin/touch "$MARKER"
+  echo "Runtime dependencies installed successfully." >>"$LOGFILE"
+fi
+
+# Preflight native imports before attempting to launch Cocoa.
+if ! "$VENV/bin/python" - <<'PY' >>"$LOGFILE" 2>&1
+import webview
+import Cocoa
+import WebKit
+import objc
+print("Native Cocoa/WebKit import preflight: OK")
+PY
+then
+  echo "ERROR: Cocoa/WebKit import preflight failed." >>"$LOGFILE"
+  /usr/bin/osascript -e 'display dialog "Wiredrive Sync installed its runtime, but the macOS Cocoa/WebKit components could not load. See ~/Library/Application Support/Wiredrive Sync/Logs/WiredriveSync.log" with title "Wiredrive Sync" buttons {"OK"} default button "OK" with icon stop' >/dev/null 2>&1 || true
+  exit 1
+fi
+
+export PYTHONUNBUFFERED=1
+export PYTHONDONTWRITEBYTECODE=1
+cd "$RESOURCES"
+echo "Launching native application..." >>"$LOGFILE"
+exec "$VENV/bin/python" "$RESOURCES/macos_launcher.py" >>"$LOGFILE" 2>&1

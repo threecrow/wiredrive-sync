@@ -1,0 +1,112 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Wiredrive Sync 1.7</title><link rel="stylesheet" href="/static/app.css">  <link rel="icon" href="/static/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png">
+  <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand"><div class="brandmark"><img src="/static/wiredrive-sync-icon.png" alt="Wiredrive Sync"></div><div><strong>Wiredrive Sync</strong><small>1.7</small></div></div>
+    <nav class="nav">
+      <button class="navitem active" data-view="dashboard"><span>⌂</span>Dashboard</button>
+      <button class="navitem" data-view="mappings"><span>▣</span>Mappings</button>
+      <button class="navitem" data-view="transfers"><span>⇩</span>Transfers <b id="navTransferCount" class="navbadge">0</b></button>
+      <button class="navitem" data-view="activity"><span>☷</span>Activity</button>
+      <button class="navitem" data-view="remote"><span>☁</span>Remote Browser</button>
+      <div class="navrule"></div>
+      <button class="navitem" data-view="settings"><span>⚙</span>Settings</button>
+      <button class="navitem" data-view="about"><span>ⓘ</span>About</button>
+    </nav>
+    <div class="sidebottom">
+      <div class="accountcard"><div class="accountstate"><i></i><span id="sideConnState">Not connected</span></div><strong id="sideAccount">Wiredrive</strong><small id="sideHost">wiredrive.com</small><button onclick="showView('settings')">Manage Account</button></div>
+    </div>
+  </aside>
+
+  <div class="workspace">
+    <header class="topbar">
+      <div class="searchbox" id="globalSearchBox"><span>⌕</span><input id="globalSearch" autocomplete="off" placeholder="Search mappings, transfers, filenames, or paths…"><button id="searchClear" class="searchclear" type="button" onclick="clearGlobalSearch()" aria-label="Clear search">×</button><kbd>⌘K</kbd><div id="searchResults" class="searchresults hidden"></div></div>
+      <div class="topactions"><button class="syncbutton" onclick="syncNow()"><span>▶</span> Sync Now</button><button class="iconbutton" onclick="showView('settings')">⚙</button><button class="iconbutton">•••</button></div>
+    </header>
+
+    <main>
+      <section class="view active" id="view-dashboard">
+        <div class="pagehead"><div><h1>Dashboard</h1><p>Real-time overview of your sync environment</p></div></div>
+        <div class="dashboardgrid">
+          <div class="maincolumn">
+            <div class="metricgrid">
+              <div class="metric"><div class="metricicon blue">▱</div><div><strong id="metricMappings">0</strong><span>Mappings</span><small id="metricMappingNote">No mappings configured</small></div></div>
+              <div class="metric"><div class="metricicon blue">↑</div><div><strong id="metricUploads">0</strong><span>Uploading</span><small id="metricUploadSpeed">0 B/s</small></div></div>
+              <div class="metric"><div class="metricicon green">↓</div><div><strong id="metricDownloads">0</strong><span>Downloading</span><small id="metricDownloadSpeed">0 B/s</small></div></div>
+              <div class="metric"><div class="metricicon green">✓</div><div><strong id="metricSynced">0</strong><span>Files Synced</span><small>This client</small></div></div>
+            </div>
+
+            <section class="card mappingscard">
+              <div class="cardhead"><div><h2>Sync Mappings</h2><span id="mappingSummary">0 active mappings</span></div><button class="primary" onclick="openMappingEditor()">＋ New Mapping</button></div>
+              <div id="dashboardMappings" class="mappingcards"></div>
+            </section>
+
+            <section class="card transferscard">
+              <div class="cardhead"><div><h2>Active Transfers</h2><span id="activeTransferLabel">0 in progress</span></div><div class="headtools"><button onclick="clearCompleted()">Clear Completed</button></div></div>
+              <div id="dashboardTransfers" class="transferlist"></div>
+            </section>
+          </div>
+          <aside class="rightcolumn">
+            <section class="card activitycard"><div class="cardhead"><h2>Activity Stream</h2><button onclick="showView('activity')">View all</button></div><div id="activityStream" class="activitystream"></div></section>
+            <section class="card schedulercard"><div class="cardhead"><h2>Scheduler</h2><span class="running">Running</span></div><div class="schedulebody"><div class="clock">◷</div><div><span>Next remote check</span><strong id="nextCheck">Every 15 seconds</strong></div></div><button class="widebutton" onclick="showView('settings')">Edit Schedule</button></section>
+            <section class="card healthcard"><div class="cardhead"><h2>System Health</h2><span class="healthok">✓</span></div><strong class="operational">All Systems Operational</strong><div class="healthgrid"><div><span>Mappings</span><b id="healthMappings">0</b></div><div><span>Observers</span><b id="healthObservers">0</b></div><div><span>Network</span><b id="healthNetwork">0 B/s</b></div></div></section>
+          </aside>
+        </div>
+      </section>
+
+      <section class="view" id="view-mappings">
+        <div class="pagehead"><div><h1>Mappings</h1><p>Manage independent local ↔ Wiredrive folder relationships</p></div><button class="primary" onclick="openMappingEditor()">＋ New Mapping</button></div>
+        <section class="card"><div id="mappingTable" class="mappingtable"></div></section>
+      </section>
+
+      <section class="view" id="view-transfers">
+        <div class="pagehead"><div><h1>Transfers</h1><p>Upload and download queue with live throughput</p></div><button onclick="clearCompleted()">Clear Completed</button></div>
+        <section class="card"><div id="allTransfers" class="transferlist full"></div></section>
+      </section>
+
+      <section class="view" id="view-activity">
+        <div class="pagehead"><div><h1>Activity</h1><p>Recent synchronization history across every mapping</p></div></div>
+        <section class="card"><div id="activityList" class="activitylist"></div></section>
+      </section>
+
+      <section class="view" id="view-remote">
+        <div class="pagehead"><div><h1>Remote Browser</h1><p>Browse projects and Wiredrive folder hierarchies</p></div></div>
+        <section class="card remotelanding"><div class="cloudhero">☁</div><h2>Browse Wiredrive</h2><p>Explore the authenticated account's projects and folder tree. Select a folder to use it in a new mapping.</p><button class="primary" onclick="openRemoteBrowser(true)">Open Remote Browser</button></section>
+      </section>
+
+      <section class="view" id="view-settings">
+        <div class="pagehead"><div><h1>Settings</h1><p>Account connection and global synchronization behavior</p></div></div>
+        <div class="settingsgrid">
+          <section class="card settingscard"><div class="cardhead"><div><h2>Wiredrive Account</h2><span id="settingsConnDetail">Connect this client to Wiredrive</span></div></div><div class="settingsbody">
+            <label>Email<input id="wdUser" type="email" placeholder="name@company.com"></label><label>Password<input id="wdPass" type="password" placeholder="••••••••"></label>
+            <div class="buttonrow"><button class="primary" onclick="connectWiredrive()">Connect to Wiredrive</button><button onclick="disconnectWiredrive()">Disconnect</button><button onclick="refreshCredentials()">Refresh Session</button></div>
+            <details class="harfallback"><summary>HAR fallback / diagnostics</summary><input id="harFile" type="file" accept=".har,application/json"><button onclick="importHar()">Import HAR</button></details>
+          </div></section>
+          <section class="card settingscard"><div class="cardhead"><h2>Sync Engine</h2></div><div class="settingsbody twofields"><label>Remote check interval<input id="settingRemoteCheck" type="number" min="15" step="5"></label><label>File stability wait<input id="settingStable" type="number" min="2"></label><label>Uploader mode<select id="settingMode"><option value="wiredrive">Live Wiredrive</option><option value="simulation">Simulation</option></select></label><div></div><button class="primary" onclick="saveSettings()">Save Settings</button></div></section>
+        </div>
+      </section>
+
+      <section class="view" id="view-about"><div class="pagehead"><div><h1>About</h1><p>Wiredrive Sync 1.7</p></div></div><section class="card aboutcard"><div class="aboutmark"><img src="/static/wiredrive-sync-icon.png" alt="Wiredrive Sync"></div><h2>Wiredrive Sync</h2><p>Local ↔ Wiredrive media synchronization with recursive folder mapping, true-sync reconciliation, resumable downloads, multipart uploads, remote browsing, and transfer telemetry.</p></section></section>
+    </main>
+
+    <footer class="statusbar"><div><i class="statusdot"></i><span id="footerConnection">Disconnected</span></div><div>Scheduler: <b>Running</b><span>•</span><span id="footerNextCheck">30s polling</span></div><div class="statusspeeds"><span class="down">↓</span><span id="footerDown">0 B/s</span><span class="up">↑</span><span id="footerUp">0 B/s</span></div><div>Wiredrive Sync 1.7</div></footer>
+  </div>
+</div>
+
+<div id="mappingModal" class="modal hidden"><div class="modalcard mappingmodal"><div class="modalhead"><div><div class="eyebrow">SYNC MAPPING</div><h2 id="mappingModalTitle">New Mapping</h2></div><button class="iconclose" onclick="closeMappingEditor()">×</button></div><div class="mappingform">
+  <label>Mapping name<input id="mapName" placeholder="Tahiti EVS Clips"></label>
+  <label>Sync direction<select id="mapDirection"><option value="two_way">↔ Two-Way</option><option value="upload">↑ Upload Only</option><option value="download">↓ Download Only</option></select></label>
+  <label class="wide">Local folder<div class="inputaction"><input id="mapPath" placeholder="/Volumes/Media/TAHITI/EVS_CLIPS"><button type="button" onclick="browseFolderForMapping()">Browse…</button></div></label>
+  <label class="wide">Wiredrive destination<div class="inputaction"><input id="mapDestination" placeholder="Choose a Wiredrive folder" readonly><button type="button" onclick="openRemoteBrowser(false)">Browse Wiredrive…</button></div></label>
+  <div class="options wide"><label class="check"><input id="mapRecursive" type="checkbox" checked><span><b>Recursive</b><small>Include all local and remote subfolders</small></span></label><label class="check"><input id="mapCreateMissing" type="checkbox" checked><span><b>Create missing folders</b><small>Recreate hierarchy automatically</small></span></label><label class="check"><input id="mapEnabled" type="checkbox" checked><span><b>Active</b><small>Run this mapping in the background</small></span></label></div>
+  <details class="advanced wide"><summary>Advanced Wiredrive IDs</summary><div class="idgrid"><label>Project ID<input id="mapProjectId"></label><label>Folder ID<input id="mapFolderId"></label></div></details>
+</div><div class="modalfoot mappingmodalfoot"><button id="deleteMappingButton" class="dangerbutton" style="display:none" onclick="deleteEditingMapping()">Delete Mapping</button><div class="modalfootright"><button onclick="closeMappingEditor()">Cancel</button><button class="primary" id="saveMappingButton" onclick="saveMapping()">Create Mapping</button></div></div></div></div>
+
+<div id="remoteBrowserModal" class="modal hidden" role="dialog" aria-modal="true"><div class="modalcard remotemodal"><div class="modalhead"><div><div class="eyebrow">WIREDRIVE</div><h2>Choose Remote Folder</h2></div><button class="iconclose" onclick="closeRemoteBrowser()">×</button></div><div class="browserbody"><div class="projectpane"><input id="projectSearch" class="browsersearch" placeholder="Search projects…"><div id="projectList" class="projectlist"></div></div><div class="folderpane"><div class="foldertoolbar"><input id="folderSearch" class="browsersearch" placeholder="Search folders…"><button onclick="reloadRemoteProject()">Refresh</button></div><div id="remoteBreadcrumb" class="breadcrumb">Select a project</div><div id="folderTree" class="foldertree"></div></div></div><div class="modalfoot"><div id="remoteSelection" class="selection">No folder selected</div><div><button onclick="closeRemoteBrowser()">Cancel</button><button id="useRemoteBtn" class="primary" onclick="useRemoteSelection()" disabled>Use This Folder</button></div></div></div></div>
+
+<div id="toast"></div><script src="/static/app.js"></script></body></html>

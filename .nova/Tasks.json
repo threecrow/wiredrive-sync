@@ -1,0 +1,12 @@
+{
+  "tasks": [
+    {
+      "name": "Run Wiredrive Sync Dev",
+      "command": "./scripts/run_dev.command"
+    },
+    {
+      "name": "Build macOS App",
+      "command": "python3 ./scripts/build_macos_app.py"
+    }
+  ]
+}
