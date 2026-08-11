@@ -1,32 +1,35 @@
 # macOS
 .DS_Store
+.AppleDouble
+._*
 
-# Xcode user data
-xcuserdata/
-*.xcuserstate
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
 
-# Xcode build output
-DerivedData/
+# Build / distribution
 build/
-
-# Swift Package Manager
-.build/
-.swiftpm/
-
-# Xcode archives
-*.xcarchive
-
-# Signing / certificates
-*.p12
-*.cer
-*.mobileprovision
-*.provisionprofile
+dist/
+*.app
+*.dmg
+*.pkg
+*.zip
 
 # Secrets / environment
 .env
 .env.*
 *.key
 *.pem
+*.p12
+*.cer
+*.mobileprovision
+*.provisionprofile
 
 # Logs
 *.log
@@ -34,3 +37,11 @@ build/
 # Temporary files
 *.tmp
 *.temp
+
+# Xcode / Swift - retained in case native wrapper expands
+xcuserdata/
+*.xcuserstate
+DerivedData/
+.build/
+.swiftpm/
+*.xcarchive
