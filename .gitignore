@@ -1,56 +1,36 @@
-# Python
-__pycache__/
-*.py[cod]
-*.pyo
-.venv/
-venv/
-env/
-
-# Wiredrive Sync runtime data
-config.json
-watchfolder.db
-watchfolder.db-*
-*.sqlite
-*.sqlite3
-Logs/
-*.log
-migration.txt
-
-# Credentials / captures
-*.har
-*.HAR
-*.pem
-*.key
-.env
-.env.*
-credentials.json
-secrets.json
-
 # macOS
 .DS_Store
-._*
-.AppleDouble
-.LSOverride
-Icon?
-.Trashes
-.Spotlight-V100
-.fseventsd
 
-# Windows
-Thumbs.db
-Desktop.ini
+# Xcode user data
+xcuserdata/
+*.xcuserstate
 
-# Build output
-dist/
+# Xcode build output
+DerivedData/
 build/
-*.app/
-*.dmg
-*.pkg
-*.exe
-*.msi
-*.zip
-*.tar.gz
 
-# Editor / IDE
-.vscode/
-.idea/
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# Xcode archives
+*.xcarchive
+
+# Signing / certificates
+*.p12
+*.cer
+*.mobileprovision
+*.provisionprofile
+
+# Secrets / environment
+.env
+.env.*
+*.key
+*.pem
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
