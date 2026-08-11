@@ -97,12 +97,6 @@ A sensible first commit message is:
 Initial Wiredrive Sync 1.7 source release
 ```
 
-## Do not commit
-
-The `.gitignore` excludes runtime databases, credentials, captured HAR files, local virtual environments, logs, build products, and macOS metadata files.
-
-Do not remove those exclusions unless you intentionally want sensitive/local runtime data in the repository.
-
 ## Distribution
 
 The repository contains source and packaging files. Built `.app`, `.zip`, `.dmg`, `.exe`, and similar release artifacts should normally be attached to GitHub Releases rather than committed into the source tree.
